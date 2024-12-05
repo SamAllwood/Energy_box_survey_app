@@ -8,6 +8,7 @@ library(leaflet.extras)
 library(magick)
 library(shinyjs)
 library(shinythemes)
+library(exifr)
 
 # Shiny app to log photos into database
 
@@ -85,7 +86,7 @@ server <- function(input, output, session) {
       stop("No files found in the photo directory.")
     }
     
-    exif_data <- exif_read(input_paths, tags = c("FileName", "GPSLatitude", "GPSLatitudeRef", "GPSLongitude", "GPSLongitudeRef"))
+    exif_data <- exifr::read_exif(input_paths, tags = c("FileName", "GPSLatitude", "GPSLatitudeRef", "GPSLongitude", "GPSLongitudeRef"))
     
     if (!all(c("GPSLatitude", "GPSLongitude") %in% names(exif_data))) {
       stop("EXIF data does not contain GPS information.")
