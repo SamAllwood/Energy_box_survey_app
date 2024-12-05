@@ -10,7 +10,6 @@ library(shinyjs)
 library(shinythemes)
 
 # Shiny app to log photos into database
-# Now fixed
 
 # Define UI
 ui <- fluidPage(
