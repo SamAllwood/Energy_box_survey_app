@@ -4,4 +4,4 @@ Local community environmental group (Summerston Community Environmental Group, S
 
 This is currently just the upload app, still to come are the collation and presentation pages. 
 
-[Screenshot_upload_app.jpg]
+[[!Screenshot_upload_app](https://github.com/SamAllwood/Energy_box_survey_app/blob/main/Screenshot_upload_app.jpg)]
