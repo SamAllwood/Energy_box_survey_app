@@ -62,8 +62,8 @@ ui <- fluidPage(
 # Define server logic
 server <- function(input, output, session) {
   # Load and process existing data
-  output_dir <- "../Photos/JPEGs"
-  photo_directory <- "../Photos"
+  output_dir <- "Photos/JPEGs"
+  photo_directory <- "Photos"
   preview_directory <- "www/previews"
   updated_dataset_path <- "updated_dataset.csv"
   
