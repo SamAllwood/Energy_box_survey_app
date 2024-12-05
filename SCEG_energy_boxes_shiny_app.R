@@ -216,6 +216,7 @@ server <- function(input, output, session) {
     shinyjs::hide("Step 1")
     shinyjs::show("Step 2")
     shinyjs::show("example_images")
+    
   })
   
   # Observe submit button
@@ -293,6 +294,12 @@ server <- function(input, output, session) {
     shinyjs::hide("submit")
     shinyjs::show("add_another")
     
+    # hide the inputs
+    shinyjs::hide("photo")
+    shinyjs::hide("location")
+    shinyjs::hide("box_type")
+    shinyjs::hide("code")
+    
     # Show the data table
     shinyjs::show("data")
    })
@@ -311,6 +318,12 @@ server <- function(input, output, session) {
     shinyjs::hide("preview_title")
     shinyjs::hide("data")
     shinyjs::hide("example_images")
+    
+    # Show the inputs
+    shinyjs::show("photo")
+    shinyjs::show("location")
+    shinyjs::show("box_type")
+    shinyjs::show("code")
     
     # Show the submit button and hide the add another button
     shinyjs::show("submit")
