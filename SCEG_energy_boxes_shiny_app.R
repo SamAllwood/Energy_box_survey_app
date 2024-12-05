@@ -97,7 +97,7 @@ server <- function(input, output, session) {
       mutate(image_number = sub("\\.HEIC$", "", FileName)) %>%
       rename("latitude" = GPSLatitude, "longitude" = "GPSLongitude")
     
-    survey_data <- read_excel("../SCEG_Energy_Box_Register.xlsx") %>%
+    survey_data <- read_excel("SCEG_Energy_Box_Register.xlsx") %>%
       select("Location", "Code Number", "Photo filename", "Box Type") %>%
       rename("Photo" = "Photo filename", 
              "label_number" = "Code Number", 
