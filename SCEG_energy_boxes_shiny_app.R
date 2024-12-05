@@ -25,7 +25,7 @@ ui <- fluidPage(
       hidden(imageOutput("photo_preview")),
       hidden(h3(id = "Step 2", "Step 2. Enter photo details")),
       textInput("location", "Location", placeholder = "from map (you can zoom in!)"),
-      selectInput("box_type", "Box Type", choices = c("NA", "1", "2", "3", "Colourful")),
+      selectInput("box_type", "Box Type", choices = c("NA", "1", "2", "3", "Colourful", "other")),
       textInput("code", "Label Number", placeholder = "if applicable"),
       actionButton("submit", "Add to Dataset"),
       hidden(actionButton("add_another", "Add Another"))
