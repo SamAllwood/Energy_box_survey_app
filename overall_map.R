@@ -6,7 +6,7 @@ create_overall_map <- function(all_data) {
 centre <- c(55.903, -4.2906)
 # Define a color palette for the Box Type
 box_type_colors <- colorFactor(
-  palette = c("blue", "red", "green"),
+  palette = c("blue", "red", "purple", "black"),
   domain = all_data$`box_type`)
 #Leaflet map code
 leaflet(all_data) %>%

@@ -76,5 +76,5 @@ ui <- fluidPage(
           imageOutput("example_box3"),
           )),
       mainPanel(width = 9,
-      leafletOutput("overall_map", width = "100%", height = "800px"))
+      leafletOutput("overall_map", width = "100%", height = "600px"))
     ))))

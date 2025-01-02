@@ -33,6 +33,7 @@ server <- function(input, output, session) {
   if (file.exists(updated_dataset_path)) {
     all_data <- read.csv(updated_dataset_path, stringsAsFactors = FALSE)
     all_data$box_type <- as.factor(all_data$box_type)
+    all_data$box_type[is.na(all_data$box_type)] <- "other"  # Replace 'NA' with 'other'
   } else {
     input_paths <- list.files(photo_directory, full.names = TRUE, recursive = TRUE)
     
@@ -63,6 +64,8 @@ server <- function(input, output, session) {
       mutate(Photo_src = file.path(output_dir, paste0(photo_filename)),
              box_type = as.factor(box_type)) %>%
       select(Location, label_number, box_type, Photo_src, latitude, longitude, photo_filename)
+    
+    all_data$box_type[is.na(all_data$box_type)] <- "other"  # Replace 'NA' with 'other'
   }
   
   # Render example images
@@ -164,11 +167,20 @@ server <- function(input, output, session) {
       return()
     }
     
-    # Render preview map with the new photo location
+    # Render preview map with the new photo location (include existing photo locations to avoid duplication)
     output$preview_map <- leaflet::renderLeaflet({
       leaflet::leaflet() %>%
         leaflet::addProviderTiles("OpenStreetMap") %>%
         leaflet::setView(new_gps_data$longitude[1], new_gps_data$latitude[1], zoom = 15) %>%
+        leaflet::addCircleMarkers(
+          lng = all_data$longitude,
+          lat = all_data$latitude,
+          color = "blue",
+          radius = 1,
+          opacity = 1,
+          stroke = TRUE,
+          weight = 3
+        ) %>%
         leaflet::addCircleMarkers(
           lng = new_gps_data$longitude[1],
           lat = new_gps_data$latitude[1],
@@ -254,11 +266,12 @@ server <- function(input, output, session) {
     # Update the data table
     output$data <- renderTable({
       all_data %>%
-        select(-Photo) %>%
+        select(-c(Photo,latitude, longitude, photo_filename)) %>%
         mutate(box_type = as.factor(box_type))
     })
     
     # Save the updated dataset to an external file
+
     write.csv(all_data, updated_dataset_path, row.names = FALSE)
     
     # Hide instructions
