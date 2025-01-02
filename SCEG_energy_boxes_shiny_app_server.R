@@ -176,10 +176,10 @@ server <- function(input, output, session) {
           lng = all_data$longitude,
           lat = all_data$latitude,
           color = "blue",
-          radius = 1,
+          radius = 2,
           opacity = 1,
           stroke = TRUE,
-          weight = 3
+          weight = 5
         ) %>%
         leaflet::addCircleMarkers(
           lng = new_gps_data$longitude[1],
@@ -209,11 +209,11 @@ server <- function(input, output, session) {
     shinyjs::show("Step 2")
     shinyjs::show("example_images_hidden")
   })
-  
+
   # Observe submit button
   observeEvent(input$submit, {
     req(input$photo)
-    print("Submit button clicked")
+    print("Submitted to database")
     
     # Save the uploaded photo
     photo_path <- file.path(photo_directory, input$photo$name)
@@ -263,7 +263,12 @@ server <- function(input, output, session) {
     
     all_data <<- bind_rows(all_data, new_entry)
     
-    # Update the data table
+    # refresh output map
+    output$overall_map <- renderLeaflet({
+      create_overall_map(all_data)
+    })
+    
+     # refresh data table
     output$data <- renderTable({
       all_data %>%
         select(-c(Photo,latitude, longitude, photo_filename)) %>%
@@ -271,7 +276,6 @@ server <- function(input, output, session) {
     })
     
     # Save the updated dataset to an external file
-
     write.csv(all_data, updated_dataset_path, row.names = FALSE)
     
     # Hide instructions
@@ -291,10 +295,14 @@ server <- function(input, output, session) {
     shinyjs::hide("location")
     shinyjs::hide("box_type")
     shinyjs::hide("code")
-    
-    # Show the data table
-    shinyjs::show("data")
-   })
+  })
+  
+  # Render data table
+  output$data <- renderTable({
+    all_data %>%
+      select(-c(Photo,latitude, longitude, photo_filename)) %>%
+      mutate(box_type = as.factor(box_type))
+  })
   
   # Observe add another button
   observeEvent(input$add_another, {
@@ -308,7 +316,6 @@ server <- function(input, output, session) {
     shinyjs::hide("preview_map")
     shinyjs::hide("photo_preview")
     shinyjs::hide("preview_title")
-    shinyjs::hide("data")
     shinyjs::hide("example_images_hidden")
     
     # Show the inputs

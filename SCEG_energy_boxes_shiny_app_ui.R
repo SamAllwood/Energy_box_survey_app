@@ -23,8 +23,10 @@ ui <- fluidPage(
         sidebarPanel(
           h3(id = "Step 1", "Step 1. Upload a photo"),
           fileInput("photo", "Upload Photo", accept = c('image/heic')),
-          hidden(tags$h5("Preview:", id = "preview_title")),
-          hidden(imageOutput("photo_preview")),
+          tags$div(
+            hidden(tags$h3("Preview", id = "preview_title")),
+            hidden(imageOutput("photo_preview", click = "photo_click"))
+          ),
           hidden(h3(id = "Step 2", "Step 2. Enter photo details")),
           textInput("location", "Location", placeholder = "from map (you can zoom in!)"),
           selectInput("box_type", "Box Type", choices = c("NA", "1", "2", "3", "Colourful", "other")),
@@ -34,7 +36,6 @@ ui <- fluidPage(
                   ),
         mainPanel(
           leafletOutput("preview_map"),
-          tableOutput("data"),
             hidden(tags$div(
               id="example_images_hidden",
                 h5("Example images for each box type:"),
@@ -77,4 +78,10 @@ ui <- fluidPage(
           )),
       mainPanel(width = 9,
       leafletOutput("overall_map", width = "100%", height = "600px"))
-    ))))
+      )),
+  tabPanel("Data",
+    titlePanel("Data Table"),
+        tableOutput("data")
+      )
+    )
+  )
