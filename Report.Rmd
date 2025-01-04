@@ -1,15 +1,24 @@
 ---
 title: "SCEG Energy Boxes Survey Report"
-author: "Sam Allwood  \n sam.allwood3@gmail.com"
-output: pdf_document
+author: "Sam Allwood  \n Summerston Community Environmental Group (SCEG)  \n sam.allwood3@gmail.com  \n https://github.com/SamAllwood"
+output: 
+  pdf_document:
+    includes:
+      in_header: header.tex
 ---
-
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(knitr)
 library(kableExtra)
 library(dplyr)
 library(ggplot2)
+library(gridExtra)
+library(flextable)
+library(leaflet)
+library(cowplot)
+library(jpeg)
+
+source("overall_map.R")
 
 knitr::opts_chunk$set(echo = TRUE)
 updated_dataset_path <- "updated_dataset.csv"
@@ -17,34 +26,94 @@ all_data <- read.csv(updated_dataset_path, stringsAsFactors = FALSE)
 all_data$box_type <- as.factor(all_data$box_type)
 all_data$box_type[is.na(all_data$box_type)] <- "other"  # Replace 'NA' with 'other'
 ```
-
-## SCEG Energy Boxes Survey Report
-
-This report summarises the Energy Boxes Survey, performed on behalf of Summerston Community Environmental Group (SCEG). The survey was conducted in 2024 and aimed to identify the location and type of energy boxes in the SCEG area. The survey was conducted over five days, and the data was collected using a mobile phone and compiled using a custom-built application, which can be found at the link at the end. The data was then analysed to identify the number of energy boxes and their types.
+This report summarises the Energy Boxes Survey, performed on behalf of Summerston Community Environmental Group (SCEG). The survey was conducted in 2024 and aimed to identify the location and type of energy boxes in the SCEG area. The surveys were conducted over five days over the second half of the year. The data was collected using a mobile phone and compiled using a custom-built 'Shiny' web application, which can be found at the link at the end or at the author's Github site. The data was then analysed to identify the number of energy boxes and their types.
 
 ## Summary of Findings
 
-The survey identified a total of `r nrow(all_data)` energy boxes in the SCEG area. The boxes were categorised into three types based on their appearance; Type 1, 2 and 3. There were also a significant number of boxes which did not match any of the types, which are simply defined as 'other'. 
+The survey identified a total of `r nrow(all_data)` energy boxes in the SCEG area. The boxes were categorised into three types based on their appearance; Type 1, 2 and 3. There were also a significant number of boxes which did not match any of the types, which are simply defined as 'other', and represent a significant further area of study. 
+
+\begin{figure}[h] \centering \begin{minipage}{0.3\textwidth} \centering \textbf{Type 1}\ \includegraphics[width=\textwidth]{www/example_type1.jpg} \end{minipage} \begin{minipage}{0.3\textwidth} \centering \textbf{Type 2}\ \includegraphics[width=\textwidth]{www/example_type2.jpg} \end{minipage} \begin{minipage}{0.3\textwidth} \centering \textbf{Type 3}\ \includegraphics[width=\textwidth]{www/example_type3.jpg} \end{minipage} \end{figure}
 
 
-```{r box type example images, echo=FALSE}
-knitr::include_graphics("www/example_type1.jpg", dpi=1500)
-knitr::include_graphics("www/example_type2.jpg", dpi=1500)
-knitr::include_graphics("www/example_type3.jpg", dpi=1500)
-```
-
-
-The distribution of box types is shown in the table below:
-
-```{r box_type_summary, echo=FALSE}
-kable(box_summary <- all_data %>%
+```{r distribution table and pie chart, echo=FALSE}
+# Box summary table
+box_summary <- all_data %>%
   group_by(box_type) %>%
-  summarize(count = n()),
-  caption = "Numbers of Energy Boxed by Type")
+  summarize(count = n()) %>%
+  bind_rows(summarize(., box_type = "Total", count = sum(count)))
+
+summary_table <- flextable(box_summary,
+                           theme_fun = theme_booktabs,
+                           cwidth = 1.5,
+                           cheight = 0.01) %>%
+      set_header_labels(box_type = "Box Type", count = "Count") %>%
+      hline(i=4) %>%
+      fontsize(part = "header", size = 16) %>%
+      fontsize(part = "body", size = 14) %>%
+      font(fontname = "Times", part = "all") %>%
+      width(j = 1, width = 0.5) %>%
+      width(j = 2, width = 0.5) %>%
+      autofit() 
+
+# Create a pie chart of box type distribution
+pie_summary <- box_summary %>%
+  filter(box_type != "Total")
+
+pie_chart <- ggplot(pie_summary, aes(x = "", y = count, fill = box_type)) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar(theta = "y") +
+  theme_void() +
+  theme(legend.position = "none") +
+  geom_text(aes(label = paste0("Type ", box_type)), 
+                position = position_stack(vjust=0.5),
+                family = "Times") 
+  
+# Arrange the table and pie chart side by side
+summary_table_grob <- gen_grob(summary_table)
+
+plot_grid(summary_table_grob,
+  pie_chart,
+  align = "v",
+  axis = "t",
+  ncol = 2,
+  rel_widths = c(1, 1),
+  scale=c(0.5, 0.9),
+  labels = c("Distributions of Box Types"),
+  vjust = 5,
+  hjust = -1,
+  label_fontfamily = "Times"
+)
 ```
 
 
+# Overall Map
+The map below shows all energy boxes surveyed in the Summerston area. The boxes are colour-coded based on their type. The map was created using the `leaflet` package in R and an interactive version is available on Github.
 
+\begin{figure}[h] \centering \textbf{Overall Map}\ \includegraphics[width=\textwidth]{Overall_map.jpeg} \end{figure}
+
+
+\newpage
+# Box Type 1
+
+Type 1 boxes are characterised by their green colour and the presence of a code label with the form GLA8 PNxxx SNx. They are believed to belong to Glasgow City Council, as some of them display the logo, but this should be confirmed. The only issue concerning this box type is the presence of graffiti, all paintwork and label numbers are clearly visible. The survey identified a total of `r nrow(all_data$box_type == "1")` Type 1 boxes. The map below shows the location of all Type 1 boxes.
+
+
+\begin{figure}[h] \centering \textbf{Type 1 Map}\ \includegraphics[width=\textwidth]{Type_1_map.jpeg} \end{figure}
+
+```{r type 1 photo collection, echo=FALSE}
+type_1_photos <- all_data %>%
+  filter(box_type == "1") %>%
+  select(Photo_src) 
+
+# Create a list of image grobs
+type_1_image_grobs <- lapply(type_1_photos, function(img) {
+  grid::rasterGrob(jpeg::readJPEG(img), interpolate = FALSE)
+})
+
+# Arrange the images in a grid
+grid.arrange(grobs = type_1_image_grobs, ncol = 6)
+
+```
 
 ## Photo Collections
 Original photo collections from the survey runs are available on the following links They were taken on 5 different days in 2024, labelled A-E:

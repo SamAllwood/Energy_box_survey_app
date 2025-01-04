@@ -11,13 +11,13 @@ centre <- c(55.903, -4.2906)
 
 # Define a color palette for the Box Type
 box_type_colors <- colorFactor(
-  palette = c("blue", "red", "purple", "black"),
+  palette = c("darkorange", "red", "purple", "black"),
   domain = all_data$`box_type`)
 
-#Leaflet map code
+#Leaflet map code - popup images do not show the correct photos, can't work out why so have turned them off for now
 (leaflet(all_data) %>%
   addProviderTiles("OpenStreetMap") %>%
-  setView(centre[2], centre[1], zoom = 15) %>%
+  setView(centre[2], centre[1], zoom = 14) %>%
   addCircleMarkers(data=(all_data %>% filter(box_type== 1)),
                    lng = ~longitude, lat = ~latitude,
                    color = ~box_type_colors(`box_type`),
@@ -27,7 +27,8 @@ box_type_colors <- colorFactor(
                      "Code Number: ", label_number, "<br>",
                      "Box Type: ", box_type, "<br>",
                      "Source: ", Photo_src, "<br>",
-                     popupImage(img=all_data$Photo_src, height = 300)),
+                    # popupImage(img=all_data$Photo_src, height = 300)
+                    ),
                    radius = 2,
                    opacity = 1,
                    stroke = TRUE,
@@ -41,7 +42,8 @@ box_type_colors <- colorFactor(
                      "Code Number: ", label_number, "<br>",
                      "Box Type: ", box_type, "<br>",
                      "Source: ", Photo_src, "<br>",
-                     popupImage(img=Photo_src, height = 300)),
+                   #  popupImage(img=Photo_src, height = 300)
+                   ),
                    radius = 2,
                    opacity = 1,
                    stroke = TRUE,
@@ -55,7 +57,8 @@ box_type_colors <- colorFactor(
                      "Code Number: ", label_number, "<br>",
                      "Box Type: ", box_type, "<br>",
                      "Source: ", Photo_src, "<br>",
-                     popupImage(img=Photo_src, height = 300)),
+                  #   popupImage(img=Photo_src, height = 300)
+                  ),
                    radius = 2,
                    opacity = 1,
                    stroke = TRUE,
@@ -69,7 +72,7 @@ box_type_colors <- colorFactor(
                      "Code Number: ", label_number, "<br>",
                      "Box Type: ", box_type, "<br>",
                      "Source: ", Photo_src, "<br>",
-                     popupImage(img=Photo_src, height = 300)
+                  #   popupImage(img=Photo_src, height = 300)
                      ),
                    radius = 2,
                    opacity = 1,
