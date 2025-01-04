@@ -1,0 +1,58 @@
+---
+title: "SCEG Energy Boxes Survey Report"
+author: "Sam Allwood  \n sam.allwood3@gmail.com"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(dplyr)
+library(ggplot2)
+
+knitr::opts_chunk$set(echo = TRUE)
+updated_dataset_path <- "updated_dataset.csv"
+all_data <- read.csv(updated_dataset_path, stringsAsFactors = FALSE)
+all_data$box_type <- as.factor(all_data$box_type)
+all_data$box_type[is.na(all_data$box_type)] <- "other"  # Replace 'NA' with 'other'
+```
+
+## SCEG Energy Boxes Survey Report
+
+This report summarises the Energy Boxes Survey, performed on behalf of Summerston Community Environmental Group (SCEG). The survey was conducted in 2024 and aimed to identify the location and type of energy boxes in the SCEG area. The survey was conducted over five days, and the data was collected using a mobile phone and compiled using a custom-built application, which can be found at the link at the end. The data was then analysed to identify the number of energy boxes and their types.
+
+## Summary of Findings
+
+The survey identified a total of `r nrow(all_data)` energy boxes in the SCEG area. The boxes were categorised into three types based on their appearance; Type 1, 2 and 3. There were also a significant number of boxes which did not match any of the types, which are simply defined as 'other'. 
+
+
+```{r box type example images, echo=FALSE}
+knitr::include_graphics("www/example_type1.jpg", dpi=1500)
+knitr::include_graphics("www/example_type2.jpg", dpi=1500)
+knitr::include_graphics("www/example_type3.jpg", dpi=1500)
+```
+
+
+The distribution of box types is shown in the table below:
+
+```{r box_type_summary, echo=FALSE}
+kable(box_summary <- all_data %>%
+  group_by(box_type) %>%
+  summarize(count = n()),
+  caption = "Numbers of Energy Boxed by Type")
+```
+
+
+
+
+## Photo Collections
+Original photo collections from the survey runs are available on the following links They were taken on 5 different days in 2024, labelled A-E:
+
+A- https://photos.app.goo.gl/gpSXNtnQwtsQeAxs9  
+B- https://photos.app.goo.gl/ydWT5oPZv2SJ3KAP6  
+C- https://photos.app.goo.gl/UpsRWgwgCLHWXKHB6  
+D- https://photos.app.goo.gl/SXkrE4S8KmL93FKK9  
+E- https://photos.app.goo.gl/3Q187LwnFb5Gc7tf6  
+
+Please contact the author if any additional information is required or if there any access issues.
