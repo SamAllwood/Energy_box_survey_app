@@ -208,11 +208,13 @@ server <- function(input, output, session) {
     shinyjs::hide("Step 1")
     shinyjs::show("Step 2")
     shinyjs::show("example_images_hidden")
+    shinyjs::show("survey_run_number")
   })
 
   # Observe submit button
   observeEvent(input$submit, {
     req(input$photo)
+    req(input$survey_run_number)
     print("Submitted to database")
     
     # Save the uploaded photo
@@ -222,6 +224,8 @@ server <- function(input, output, session) {
     # Convert HEIC to JPG for storage
     if (grepl("\\.heic$", input$photo$name, ignore.case = TRUE)) {
       img <- image_read(photo_path)
+      base_name <- tools::file_path_sans_ext(basename(photo_path))
+      jpg_path <- file.path(output_dir, paste0(base_name, "_", survey_run_number, ".jpg"))
       jpg_path <- file.path(output_dir, sub("\\.heic$", ".jpg", input$photo$name, ignore.case = TRUE))
       image_write(img, jpg_path, format = "jpg")
       final_path <- jpg_path

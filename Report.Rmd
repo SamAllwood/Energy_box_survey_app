@@ -17,6 +17,7 @@ library(flextable)
 library(leaflet)
 library(cowplot)
 library(jpeg)
+library(magick)
 
 source("overall_map.R")
 
@@ -25,15 +26,33 @@ updated_dataset_path <- "updated_dataset.csv"
 all_data <- read.csv(updated_dataset_path, stringsAsFactors = FALSE)
 all_data$box_type <- as.factor(all_data$box_type)
 all_data$box_type[is.na(all_data$box_type)] <- "other"  # Replace 'NA' with 'other'
+
+text_scale = 150
 ```
-This report summarises the Energy Boxes Survey, performed on behalf of Summerston Community Environmental Group (SCEG). The survey was conducted in 2024 and aimed to identify the location and type of energy boxes in the SCEG area. The surveys were conducted over five days over the second half of the year. The data was collected using a mobile phone and compiled using a custom-built 'Shiny' web application, which can be found at the link at the end or at the author's Github site. The data was then analysed to identify the number of energy boxes and their types.
+This report summarises the Energy Boxes Survey, performed on behalf of Summerston Community Environmental Group (SCEG). The survey was conducted over 5 days in the second half 2024 and aimed to identify the location and type of energy boxes in the Summerston area. The data was collected using a mobile phone and compiled using a custom-built 'Shiny' web application, which can be found at the author's Github site linked above. The data was then analysed to identify the number of energy boxes and their types.
 
 ## Summary of Findings
+The survey identified a total of `r nrow(all_data)` energy boxes in the Summerston area. The boxes were categorised into three types based on their appearance; Type 1, 2 and 3. There were also a significant number of boxes which did not match any of the types, which are simply defined as 'other'. 
 
-The survey identified a total of `r nrow(all_data)` energy boxes in the SCEG area. The boxes were categorised into three types based on their appearance; Type 1, 2 and 3. There were also a significant number of boxes which did not match any of the types, which are simply defined as 'other', and represent a significant further area of study. 
-
-\begin{figure}[h] \centering \begin{minipage}{0.3\textwidth} \centering \textbf{Type 1}\ \includegraphics[width=\textwidth]{www/example_type1.jpg} \end{minipage} \begin{minipage}{0.3\textwidth} \centering \textbf{Type 2}\ \includegraphics[width=\textwidth]{www/example_type2.jpg} \end{minipage} \begin{minipage}{0.3\textwidth} \centering \textbf{Type 3}\ \includegraphics[width=\textwidth]{www/example_type3.jpg} \end{minipage} \end{figure}
-
+\begin{figure}[h]
+\centering
+\begin{minipage}{0.3\textwidth}
+\centering
+\textbf{Type 1}\\
+\includegraphics[height=0.25\textheight]{www/example_type1.jpg}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+\centering
+\textbf{Type 2}\\
+\includegraphics[height=0.25\textheight]{www/example_type2.jpg}
+\end{minipage}
+\begin{minipage}{0.3\textwidth}
+\centering
+\textbf{Type 3}\\
+\includegraphics[height=0.25\textheight]{www/example_type3.jpg}
+\end{minipage}
+\end{figure}
+  
 
 ```{r distribution table and pie chart, echo=FALSE}
 # Box summary table
@@ -75,11 +94,12 @@ plot_grid(summary_table_grob,
   pie_chart,
   align = "v",
   axis = "t",
+  rel_heights = c(0.8,0.8),
   ncol = 2,
   rel_widths = c(1, 1),
   scale=c(0.5, 0.9),
   labels = c("Distributions of Box Types"),
-  vjust = 5,
+  vjust = 7,
   hjust = -1,
   label_fontfamily = "Times"
 )
@@ -95,33 +115,260 @@ The map below shows all energy boxes surveyed in the Summerston area. The boxes 
 \newpage
 # Box Type 1
 
-Type 1 boxes are characterised by their green colour and the presence of a code label with the form GLA8 PNxxx SNx. They are believed to belong to Glasgow City Council, as some of them display the logo, but this should be confirmed. The only issue concerning this box type is the presence of graffiti, all paintwork and label numbers are clearly visible. The survey identified a total of `r nrow(all_data$box_type == "1")` Type 1 boxes. The map below shows the location of all Type 1 boxes.
+Type 1 boxes are characterised by their green colour and the presence of a code label with the form  GLA8 PNxxx SNx. They are believed to belong to Glasgow City Council, as some of them display the logo, but this should be confirmed. The only issue concerning this box type is the presence of graffiti, all paintwork and label numbers are clearly visible. The survey identified a total of `r nrow(all_data %>% filter(box_type == "1"))` Type 1 boxes. The map below shows the location of all Type 1 boxes.
 
 
 \begin{figure}[h] \centering \textbf{Type 1 Map}\ \includegraphics[width=\textwidth]{Type_1_map.jpeg} \end{figure}
 
 ```{r type 1 photo collection, echo=FALSE}
-type_1_photos <- all_data %>%
-  filter(box_type == "1") %>%
-  select(Photo_src) 
+type_1_data <- all_data %>%
+  filter(box_type == "1") 
 
-# Create a list of image grobs
-type_1_image_grobs <- lapply(type_1_photos, function(img) {
-  grid::rasterGrob(jpeg::readJPEG(img), interpolate = FALSE)
-})
+type_1_photos <- as.vector(type_1_data$Photo_src)
 
-# Arrange the images in a grid
-grid.arrange(grobs = type_1_image_grobs, ncol = 6)
+# Split the list into batches of 20 photos
+batch_size <- 20
+num_batches_1 <- ceiling(length(type_1_photos) / batch_size)
+split_index_1 <- seq(1, length(type_1_photos), by = batch_size)
+batch_limit_1 <- c((split_index_1[-1])-1, length(type_1_photos))
+
+type_1_photos_part1 <- type_1_photos[split_index_1[1]:batch_limit_1[1]]
+type_1_photos_part2 <- type_1_photos[split_index_1[2]:batch_limit_1[2]]
+type_1_photos_part3 <- type_1_photos[split_index_1[3]:batch_limit_1[3]]
+
+#Annotate images with filenames
+type_1_images_1 <- magick::image_read(type_1_photos_part1) %>% 
+                                image_annotate((type_1_photos_part1 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_1_images_2 <- magick::image_read(type_1_photos_part2) %>% 
+                                image_annotate((type_1_photos_part2 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_1_images_3 <- magick::image_read(type_1_photos_part3) %>% 
+                                image_annotate((type_1_photos_part3 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_1_montage_1 <- image_montage(type_1_images_1, tile = "4x")
+type_1_montage_2 <- image_montage(type_1_images_2, tile = "4x")
+type_1_montage_3 <- image_montage(type_1_images_3, tile = "4x")
+
 
 ```
+\newpage
+## Type 1 Photo Collection pt1.
+`r type_1_montage_1`
+
+\newpage
+## Type 1 Photo Collection pt2.
+`r type_1_montage_2`
+
+\newpage
+## Type 1 Photo Collection pt3.
+`r type_1_montage_3`
+
+
+\newpage
+# Box Type 2
+Type 2 boxes are characterised by their double-doors making them wider than the other types. They also appear older and have the most delapidated paintwork. The survey identified a total of `r nrow(all_data %>% filter(box_type == "2"))` Type 2 boxes. The map below shows the location of all Type 2 boxes.
+
+\begin{figure}[h] \centering \textbf{Type 2 Map}\ \includegraphics[width=\textwidth]{Type_2_map.jpeg} \end{figure}
+
+```{r type 2 photo collection, echo=FALSE}
+type_2_data <- all_data %>%
+  filter(box_type == "2") 
+
+type_2_photos <- as.vector(type_2_data$Photo_src)
+
+# Split the list into batches of 20 photos
+batch_size <- 20
+num_batches_2 <- ceiling(length(type_2_photos) / batch_size)
+split_index_2 <- seq(1, length(type_2_photos), by = batch_size)
+batch_limit_2 <- c((split_index_2[-1])-1, length(type_2_photos))
+
+type_2_photos_part1 <- type_2_photos[split_index_2[1]:batch_limit_2[1]]
+type_2_photos_part2 <- type_2_photos[split_index_2[2]:batch_limit_2[2]]
+
+
+#Annotate images with filenames
+type_2_images_1 <- magick::image_read(type_2_photos_part1) %>% 
+                                image_annotate((type_2_photos_part1 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_2_images_2 <- magick::image_read(type_2_photos_part2) %>% 
+                                image_annotate((type_2_photos_part2 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_2_montage_1 <- image_montage(type_2_images_1, tile = "4x")
+type_2_montage_2 <- image_montage(type_2_images_2, tile = "4x")
+
+```
+\newpage
+## Type 2 Photo Collection pt1.
+`r type_2_montage_1`
+
+\newpage
+## Type 2 Photo Collection pt2.
+`r type_2_montage_2`
+
+
+
+
+\newpage
+# Box Type 3
+Type 3 boxes are characterised by their small size and upward hingeing door. They very frequently sited by Cabletel underground access points. The survey identified a total of `r nrow(all_data %>% filter(box_type == "3"))` Type 3 boxes. The map below shows the location of all Type 3 boxes.
+
+\begin{figure}[h] \centering \textbf{Type 3 Map}\ \includegraphics[width=\textwidth]{Type_3_map.jpeg} \end{figure}
+
+```{r type 3 photo collection, echo=FALSE}
+type_3_data <- all_data %>%
+  filter(box_type == "3") 
+
+type_3_photos <- as.vector(type_3_data$Photo_src)
+
+# Split the list into batches of 20 photos
+batch_size <- 20
+num_batches_3 <- ceiling(length(type_3_photos) / batch_size)
+split_index_3 <- seq(1, length(type_3_photos), by = batch_size)
+batch_limit_3 <- c((split_index_3[-1])-1, length(type_3_photos))
+
+type_3_photos_part1 <- type_3_photos[split_index_3[1]:batch_limit_3[1]]
+type_3_photos_part2 <- type_3_photos[split_index_3[2]:batch_limit_3[2]]
+
+
+#Annotate images with filenames
+type_3_images_1 <- magick::image_read(type_3_photos_part1) %>% 
+                                image_annotate((type_3_photos_part1 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_3_images_2 <- magick::image_read(type_3_photos_part2) %>% 
+                                image_annotate((type_3_photos_part2 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_3_montage_1 <- image_montage(type_3_images_1, tile = "4x")
+type_3_montage_2 <- image_montage(type_3_images_2, tile = "4x")
+
+```
+\newpage
+## Type 3 Photo Collection pt1.
+`r type_3_montage_1`
+
+\newpage
+## Type 3 Photo Collection pt2.
+`r type_3_montage_2`
+
+
+
+\newpage
+# Box Type Other
+The remaining boxes are several type and could be grouped again, but there are far fewer of any other types. The survey identified a total of `r nrow(all_data %>% filter(box_type == "other"))` uncategorised boxes. The map below shows the locations.
+
+\begin{figure}[h] \centering \textbf{Type Other Map}\ \includegraphics[width=\textwidth]{Type_other_map.jpeg} \end{figure}
+
+```{r type other photo collection, echo=FALSE}
+type_other_data <- all_data %>%
+  filter(box_type == "other") 
+
+type_other_photos <- as.vector(type_other_data$Photo_src)
+
+# Split the list into batches of 20 photos
+batch_size <- 20
+num_batches_other <- ceiling(length(type_other_photos) / batch_size)
+split_index_other <- seq(1, length(type_other_photos), by = batch_size)
+batch_limit_other <- c((split_index_other[-1])-1, length(type_other_photos))
+
+type_other_photos_part1 <- type_other_photos[split_index_other[1]:batch_limit_other[1]]
+type_other_photos_part2 <- type_other_photos[split_index_other[2]:batch_limit_other[2]]
+type_other_photos_part3 <- type_other_photos[split_index_other[3]:batch_limit_other[3]]
+type_other_photos_part4 <- type_other_photos[split_index_other[4]:batch_limit_other[4]]
+
+#Annotate images with filenames
+type_other_images_1 <- magick::image_read(type_other_photos_part1) %>% 
+                                image_annotate((type_other_photos_part1 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_other_images_2 <- magick::image_read(type_other_photos_part2) %>% 
+                                image_annotate((type_other_photos_part2 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_other_images_3 <- magick::image_read(type_other_photos_part3) %>% 
+                                image_annotate((type_other_photos_part3 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_other_images_4 <- magick::image_read(type_other_photos_part4) %>% 
+                                image_annotate((type_other_photos_part4 %>% as.character()), 
+                                               size = text_scale,
+                                               color= "black",
+                                               gravity = "southwest",
+                                               boxcolor = "white",)
+
+type_other_montage_1 <- image_montage(type_other_images_1, tile = "4x")
+type_other_montage_2 <- image_montage(type_other_images_2, tile = "4x")
+type_other_montage_3 <- image_montage(type_other_images_3, tile = "4x")
+type_other_montage_4 <- image_montage(type_other_images_4, tile = "4x")
+
+
+```
+\newpage
+## Type Other Photo Collection pt1.
+`r type_other_montage_1`
+
+\newpage
+## Type Other Photo Collection pt2.
+`r type_other_montage_2`
+
+\newpage
+## Type Other Photo Collection pt3.
+`r type_other_montage_3`
+
+\newpage
+## Type Other Photo Collection pt4.
+`r type_other_montage_4`
+
+
 
 ## Photo Collections
 Original photo collections from the survey runs are available on the following links They were taken on 5 different days in 2024, labelled A-E:
 
-A- https://photos.app.goo.gl/gpSXNtnQwtsQeAxs9  
-B- https://photos.app.goo.gl/ydWT5oPZv2SJ3KAP6  
-C- https://photos.app.goo.gl/UpsRWgwgCLHWXKHB6  
-D- https://photos.app.goo.gl/SXkrE4S8KmL93FKK9  
-E- https://photos.app.goo.gl/3Q187LwnFb5Gc7tf6  
+A - 26th Aug 2024 - https://photos.app.goo.gl/gpSXNtnQwtsQeAxs9  
+B - 19th Sep 2024 - https://photos.app.goo.gl/ydWT5oPZv2SJ3KAP6  
+C - 27th Oct 2024 - https://photos.app.goo.gl/UpsRWgwgCLHWXKHB6  
+D - 1st Jan 2025 - https://photos.app.goo.gl/SXkrE4S8KmL93FKK9  
+E - 3rd Jan 2025 - https://photos.app.goo.gl/3Q187LwnFb5Gc7tf6  
+
+## Survey Coverage
+The GPS tracks of the survey runs are shown below. The 5 survey runs covered a total of 19.68km.
+
+\begin{figure}[h] \centering \textbf{Survey Coverage Map}\ \includegraphics[width=\textwidth]{Survey_Routes.jpeg} \end{figure}
 
 Please contact the author if any additional information is required or if there any access issues.

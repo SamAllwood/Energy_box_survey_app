@@ -23,6 +23,7 @@ ui <- fluidPage(
         sidebarPanel(
           h3(id = "Step 1", "Step 1. Upload a photo"),
           fileInput("photo", "Upload Photo", accept = c('image/heic')),
+          textInput("survey_run_number", "Survey Run Code Number", value = ""),
           tags$div(
             hidden(tags$h3("Preview", id = "preview_title")),
             hidden(imageOutput("photo_preview", click = "photo_click"))
