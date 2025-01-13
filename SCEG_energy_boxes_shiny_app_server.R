@@ -302,6 +302,12 @@ server <- function(input, output, session) {
   })
   
   # Render data table
+  # Render the full data table with hyperlinks
+  output$full_data_table <- renderDT({
+    datatable(all_data(), escape = FALSE, options = list(pageLength = 10)) %>%
+      formatStyle('Google_Photos_Link', target = 'row', 
+                  backgroundColor = styleEqual(c("https://photos.google.com/search/"), c('lightblue')))
+  })
   output$data <- renderTable({
     all_data %>%
       select(-c(Photo,latitude, longitude, photo_filename)) %>%
