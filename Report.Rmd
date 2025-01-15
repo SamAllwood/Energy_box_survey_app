@@ -18,10 +18,14 @@ library(leaflet)
 library(cowplot)
 library(jpeg)
 library(magick)
-
+library(xtable)
+options(tinytex.verbose = TRUE)
 source("overall_map.R")
 
 knitr::opts_chunk$set(echo = TRUE)
+options(scipen=999)
+
+# Load the updated dataset
 updated_dataset_path <- "updated_dataset.csv"
 all_data <- read.csv(updated_dataset_path, stringsAsFactors = FALSE)
 all_data$box_type <- as.factor(all_data$box_type)
@@ -228,7 +232,6 @@ type_2_montage_2 <- image_montage(type_2_images_2, tile = "4x")
 
 
 
-
 \newpage
 # Box Type 3
 Type 3 boxes are characterised by their small size and upward hingeing door. They are very frequently sited by Cabletel underground access points. The survey identified a total of `r nrow(all_data %>% filter(box_type == "3"))` Type 3 boxes. The map below shows the location of all Type 3 boxes.
@@ -364,6 +367,7 @@ C - 27th Oct 2024 - https://photos.app.goo.gl/UpsRWgwgCLHWXKHB6
 D - 1st Jan 2025 - https://photos.app.goo.gl/SXkrE4S8KmL93FKK9  
 E - 3rd Jan 2025 - https://photos.app.goo.gl/3Q187LwnFb5Gc7tf6  
 
+
 ## Survey Coverage
 The GPS tracks of the survey runs are shown below. The 5 survey runs covered a total of 19.68km.
 
@@ -373,21 +377,25 @@ Please contact the author if any additional information is required or if there 
 
 \newpage
 # Data Table
-The table below shows the data collected for each box including a link to the Google Images file of the original photo. This link will also provide the location, in a preview map format next to the image, if you should wish to know the location of a specific energy box.
+The table below shows the data collected for each box. The images can be found in the Google Photos links above, organised by Survey number. The Google Photos entry will also provide the location, in a preview map format next to the image, if you should wish to know the location of a specific energy box.
 
-```{r data table, echo=FALSE}
-# Create an interactive data table using the DT package
-all_data %>%
-  select(Photo, Location, box_type, Google_Photos_Link) %>%
-  mutate(Google_Photos_Link = paste0("[link](", Google_Photos_Link, ")")) %>%
-  rename("Box Type" = box_type, "Google Photos Link" = Google_Photos_Link) %>%
-  kable("latex", escape = TRUE, booktabs = TRUE, longtable = TRUE) %>%
-  kable_styling(latex_options = c("striped",
-                                  "hold_position", # stop table floating
-                                  "repeat_header")) %>%
-  column_spec(4, width = "10cm") %>%
-  column_spec(2, width = "3cm") %>%
-  column_spec(3, width = "1.5cm") 
 
+```{r data table, echo=FALSE, results="asis", messages=FALSE, warning=TRUE}
+
+(data_table <- all_data %>%
+ select(Photo, Location, Survey_run, label_number, box_type) %>%
+# mutate(Google_Photos_Link = paste0("\\href{", Google_Photos_Link, "}{Link}")) %>%
+ rename("Box Type" = box_type,
+        "Survey Number" = Survey_run,
+        "Label" = label_number) %>%
+ kable("latex", escape = TRUE, booktabs = TRUE, longtable = TRUE) %>%
+ kable_styling(protect_latex = TRUE,
+               latex_options = c("striped",
+                                 "hold_position", # stop table floating
+                                 "repeat_header")) %>%
+ column_spec(2, width = "7cm") %>%
+ column_spec(3, width = "1.5cm")
+)
 ```
+
 
