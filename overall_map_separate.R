@@ -1,4 +1,5 @@
 library(leaflet)
+library(leafpop)
 
 # Load all_data from csv file
 updated_dataset_path <- "updated_dataset.csv"
@@ -19,29 +20,29 @@ box_type_colors <- colorFactor(
   addProviderTiles("OpenStreetMap") %>%
   setView(centre[2], centre[1], zoom = 14) %>%
   addCircleMarkers(data=(all_data %>% filter(box_type== 1)),
-                   lng = ~longitude, lat = ~latitude,
+                   lng = ~GPSLongitude, lat = ~GPSLatitude,
                    color = ~box_type_colors(`box_type`),
                    group = "Type 1",
                    popup = ~paste(
                      "Location: ", Location, "<br>",
                      "Code Number: ", label_number, "<br>",
                      "Box Type: ", box_type, "<br>",
-                     "Source: ", Photo_src, "<br>",
-                    # popupImage(img=all_data$Photo_src, height = 300)
+                     "Source: ", Photo_src, "<br>"#,
+                #     popupImage(img=all_data$Photo_src, height = 300)
                     ),
                    radius = 2,
                    opacity = 1,
                    stroke = TRUE,
                    weight = 5) %>%
   addCircleMarkers(data=(all_data %>% filter(box_type== 2)),
-                   lng = ~longitude, lat = ~latitude,
+                   lng = ~GPSLongitude, lat = ~GPSLatitude,
                    color = ~box_type_colors(box_type),
                    group = "Type 2",
                    popup = ~paste(
                      "Location: ", Location, "<br>",
                      "Code Number: ", label_number, "<br>",
                      "Box Type: ", box_type, "<br>",
-                     "Source: ", Photo_src, "<br>",
+                     "Source: ", Photo_src, "<br>"#,
                    #  popupImage(img=Photo_src, height = 300)
                    ),
                    radius = 2,
@@ -49,14 +50,14 @@ box_type_colors <- colorFactor(
                    stroke = TRUE,
                    weight = 5)%>%
   addCircleMarkers(data=(all_data %>% filter(box_type== 3)),
-                   lng = ~longitude, lat = ~latitude,
+                   lng = ~GPSLongitude, lat = ~GPSLatitude,
                    color = ~box_type_colors(box_type),
                    group = "Type 3",
                    popup = ~paste(
                      "Location: ", Location, "<br>",
                      "Code Number: ", label_number, "<br>",
                      "Box Type: ", box_type, "<br>",
-                     "Source: ", Photo_src, "<br>",
+                     "Source: ", Photo_src, "<br>"#,
                   #   popupImage(img=Photo_src, height = 300)
                   ),
                    radius = 2,
@@ -64,14 +65,14 @@ box_type_colors <- colorFactor(
                    stroke = TRUE,
                    weight = 5)%>%
   addCircleMarkers(data=(all_data %>% filter(!(box_type %in% c(1, 2, 3)))),
-                   lng = ~longitude, lat = ~latitude,
+                   lng = ~GPSLongitude, lat = ~GPSLatitude,
                    color = ~box_type_colors(box_type),
                    group = "Other",
                    popup = ~paste(
                      "Location: ", Location, "<br>",
                      "Code Number: ", label_number, "<br>",
                      "Box Type: ", box_type, "<br>",
-                     "Source: ", Photo_src, "<br>",
+                     "Source: ", Photo_src, "<br>"#,
                   #   popupImage(img=Photo_src, height = 300)
                      ),
                    radius = 2,

@@ -13,7 +13,7 @@ leaflet(all_data) %>%
   addProviderTiles("OpenStreetMap") %>%
   setView(centre[2], centre[1], zoom = 15) %>%
   addCircleMarkers(data=(all_data %>% filter(box_type== 1)),
-                   lng = ~longitude, lat = ~latitude,
+                   lng = ~GPSLongitude, lat = ~GPSLatitude,
                    color = ~box_type_colors(`box_type`),
                    group = "Type 1",
                    popup = ~paste(
@@ -26,7 +26,7 @@ leaflet(all_data) %>%
                    stroke = TRUE,
                    weight = 5)%>%
   addCircleMarkers(data=(all_data %>% filter(box_type== 2)),
-                   lng = ~longitude, lat = ~latitude,
+                   lng = ~GPSLongitude, lat = ~GPSLatitude,
                    color = ~box_type_colors(box_type),
                    group = "Type 2",
                    popup = ~paste(
@@ -39,7 +39,7 @@ leaflet(all_data) %>%
                    stroke = TRUE,
                    weight = 5)%>%
   addCircleMarkers(data=(all_data %>% filter(box_type== 3)),
-                   lng = ~longitude, lat = ~latitude,
+                   lng = ~GPSLongitude, lat = ~GPSLatitude,
                    color = ~box_type_colors(box_type),
                    group = "Type 3",
                    popup = ~paste(
@@ -52,7 +52,7 @@ leaflet(all_data) %>%
                    stroke = TRUE,
                    weight = 5)%>%
   addCircleMarkers(data=(all_data %>% filter(!(box_type %in% c(1, 2, 3)))),
-                   lng = ~longitude, lat = ~latitude,
+                   lng = ~GPSLongitude, lat = ~GPSLatitude,
                    color = ~box_type_colors(box_type),
                    group = "Other",
                    popup = ~paste(

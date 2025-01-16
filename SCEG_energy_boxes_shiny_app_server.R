@@ -9,6 +9,7 @@ library(magick)
 library(shinyjs)
 library(shinythemes)
 library(exifr)
+library(kableExtra)
 
 # load overall map from separate file
 source("overall_map.R")
@@ -41,7 +42,11 @@ server <- function(input, output, session) {
       stop("No files found in the photo directory.")
     }
     
-    exif_data <- exifr::read_exif(input_paths, tags = c("FileName", "GPSLatitude", "GPSLatitudeRef", "GPSLongitude", "GPSLongitudeRef"))
+    exif_data <- exifr::read_exif(input_paths, tags = c("FileName", 
+                                                        "GPSLatitude", 
+                                                        "GPSLatitudeRef", 
+                                                        "GPSLongitude", 
+                                                        "GPSLongitudeRef"))
     
     if (!all(c("GPSLatitude", "GPSLongitude") %in% names(exif_data))) {
       stop("EXIF data does not contain GPS information.")
@@ -50,8 +55,7 @@ server <- function(input, output, session) {
     gps_data <- exif_data %>%
       filter(!is.na(GPSLatitude) & !is.na(GPSLongitude)) %>%
       select(SourceFile, FileName, GPSLatitude, GPSLongitude) %>%
-      mutate(image_number = sub("\\.HEIC$", "", FileName)) %>%
-      rename("latitude" = GPSLatitude, "longitude" = "GPSLongitude")
+      mutate(image_number = sub("\\.HEIC$", "", FileName)) 
     
     survey_data <- read_excel("SCEG_Energy_Box_Register.xlsx") %>%
       select("Location", "Code Number", "Photo filename", "Box Type") %>%
@@ -63,7 +67,7 @@ server <- function(input, output, session) {
     all_data <- left_join(survey_data, gps_data, by = c("Photo" = "image_number")) %>%
       mutate(Photo_src = file.path(output_dir, paste0(photo_filename)),
              box_type = as.factor(box_type)) %>%
-      select(Location, label_number, box_type, Photo_src, latitude, longitude, photo_filename)
+      select(Location, label_number, box_type, Photo_src, GPSLatitude, GPSLongitude, photo_filename)
     
     all_data$box_type[is.na(all_data$box_type)] <- "other"  # Replace 'NA' with 'other'
   }
@@ -137,20 +141,25 @@ server <- function(input, output, session) {
     file.copy(input$photo$datapath, photo_path)
     
     # Convert HEIC to JPG for preview
-    if (grepl("\\.heic$", input$photo$name, ignore.case = TRUE)) {
-      img <- image_read(photo_path)
-      jpg_path <- file.path(preview_directory, sub("\\.heic$", ".jpg", input$photo$name, ignore.case = TRUE))
-      image_write(img, jpg_path, format = "jpg")
-      preview_path <- jpg_path
-    } else {
-      preview_path <- file.path(preview_directory, input$photo$name)
-      file.copy(photo_path, preview_path)
-    }
-    
-    print(paste("Preview path:", preview_path))
-    
+#   if (grepl("\\.heic$", input$photo$name, ignore.case = TRUE)) {
+#     img <- image_read(photo_path)
+#     jpg_path <- file.path(preview_directory, sub("\\.heic$", ".jpg", input$photo$name, ignore.case = TRUE))
+#     image_write(img, jpg_path, format = "jpg")
+#     preview_path <- jpg_path
+#   } else {
+#     preview_path <- file.path(preview_directory, input$photo$name)
+#     file.copy(photo_path, preview_path)
+#   }
+#   
+#   print(paste("Preview path:", preview_path))
+#   
     # Process the new photo with read_exif
-    new_exif_data <- exif_read(photo_path, tags = c("SourceFile", "FileName", "GPSLatitude", "GPSLatitudeRef", "GPSLongitude", "GPSLongitudeRef"))
+    new_exif_data <- exif_read(photo_path, tags = c("SourceFile", 
+                                                    "FileName", 
+                                                    "GPSLatitude", 
+                                                    "GPSLatitudeRef", 
+                                                    "GPSLongitude", 
+                                                    "GPSLongitudeRef"))
     
     if (!all(c("GPSLatitude", "GPSLongitude") %in% names(new_exif_data))) {
       showNotification("No GPS data found in the uploaded photo.", type = "error")
@@ -159,8 +168,7 @@ server <- function(input, output, session) {
     
     new_gps_data <- new_exif_data %>%
       filter(!is.na(GPSLatitude) & !is.na(GPSLongitude)) %>%
-      select(SourceFile, FileName, GPSLatitude, GPSLongitude) %>%
-      rename("latitude" = GPSLatitude, "longitude" = "GPSLongitude")
+      select(SourceFile, FileName, GPSLatitude, GPSLongitude) 
     
     if (nrow(new_gps_data) == 0) {
       showNotification("No GPS data found in the uploaded photo.", type = "error")
@@ -171,10 +179,10 @@ server <- function(input, output, session) {
     output$preview_map <- leaflet::renderLeaflet({
       leaflet::leaflet() %>%
         leaflet::addProviderTiles("OpenStreetMap") %>%
-        leaflet::setView(new_gps_data$longitude[1], new_gps_data$latitude[1], zoom = 15) %>%
+        leaflet::setView(new_gps_data$GPSLongitude[1], new_gps_data$GPSLatitude[1], zoom = 15) %>%
         leaflet::addCircleMarkers(
-          lng = all_data$longitude,
-          lat = all_data$latitude,
+          lng = all_data$GPSLongitude,
+          lat = all_data$GPSLatitude,
           color = "blue",
           radius = 2,
           opacity = 1,
@@ -182,8 +190,8 @@ server <- function(input, output, session) {
           weight = 5
         ) %>%
         leaflet::addCircleMarkers(
-          lng = new_gps_data$longitude[1],
-          lat = new_gps_data$latitude[1],
+          lng = new_gps_data$GPSLongitude[1],
+          lat = new_gps_data$GPSLatitude[1],
           color = "red",
           radius = 1,
           opacity = 1,
@@ -217,41 +225,46 @@ server <- function(input, output, session) {
     req(input$survey_run_number)
     print("Submitted to database")
     
-    # Save the uploaded photo
-    photo_path <- file.path(photo_directory, input$photo$name)
-    file.copy(input$photo$datapath, photo_path)
+    final_path <- file.path(output_dir, input$photo$name)
     
-    # Convert HEIC to JPG for storage
-    if (grepl("\\.heic$", input$photo$name, ignore.case = TRUE)) {
-      img <- image_read(photo_path)
-      base_name <- tools::file_path_sans_ext(basename(photo_path))
-      jpg_path <- file.path(output_dir, paste0(base_name, "_", survey_run_number, ".jpg"))
-      jpg_path <- file.path(output_dir, sub("\\.heic$", ".jpg", input$photo$name, ignore.case = TRUE))
-      image_write(img, jpg_path, format = "jpg")
-      final_path <- jpg_path
-    } else {
-      final_path <- file.path(output_dir, input$photo$name)
-      file.copy(photo_path, final_path)
-    }
+#   # Save the uploaded photo
+#   photo_path <- file.path(photo_directory, input$photo$name)
+#   file.copy(input$photo$datapath, photo_path)
+    
+#   # Convert HEIC to JPG for storage - this done by the Google Photos transaction
+#   if (grepl("\\.heic$", input$photo$name, ignore.case = TRUE)) {
+#     img <- image_read(photo_path)
+#     base_name <- tools::file_path_sans_ext(basename(photo_path))
+#     jpg_path <- file.path(output_dir, paste0(base_name, "_", survey_run_number, ".jpg"))
+#     jpg_path <- file.path(output_dir, sub("\\.heic$", ".jpg", input$photo$name, ignore.case = TRUE))
+#     image_write(img, jpg_path, format = "jpg")
+#     final_path <- jpg_path
+#   } else {
+#     final_path <- file.path(output_dir, input$photo$name)
+#     file.copy(photo_path, final_path)
+#   }
     
     # Process the new photo with read_exif
-    new_exif_data <- exif_read(photo_path, tags = c("FileName", "GPSLatitude", "GPSLatitudeRef", "GPSLongitude", "GPSLongitudeRef"))
-    
-    if (!all(c("GPSLatitude", "GPSLongitude") %in% names(new_exif_data))) {
-      showNotification("No GPS data found in the uploaded photo.", type = "error")
-      return()
-    }
-    
-    new_gps_data <- new_exif_data %>%
-      filter(!is.na(GPSLatitude) & !is.na(GPSLongitude)) %>%
-      select(SourceFile, FileName, GPSLatitude, GPSLongitude) %>%
-      mutate(image_number = sub("\\.jpg$", "", FileName)) %>%
-      rename("latitude" = GPSLatitude, "longitude" = "GPSLongitude")
-    
-    if (nrow(new_gps_data) == 0) {
-      showNotification("No GPS data found in the uploaded photo.", type = "error")
-      return()
-    }
+   new_exif_data <- exif_read(photo_path, tags = c("FileName", 
+                                                   "GPSLatitude", 
+                                                   "GPSLatitudeRef", 
+                                                   "GPSLongitude", 
+                                                   "GPSLongitudeRef"))
+   
+   if (!all(c("GPSLatitude", "GPSLongitude") %in% names(new_exif_data))) {
+     showNotification("No GPS data found in the uploaded photo.", type = "error")
+     return()
+   }
+   
+   new_gps_data <- new_exif_data %>%
+     filter(!is.na(GPSLatitude) & !is.na(GPSLongitude)) %>%
+     select(SourceFile, FileName, GPSLatitude, GPSLongitude) %>%
+     mutate(image_number = sub("\\.jpg$", "", FileName)) 
+   
+   if (nrow(new_gps_data) == 0) {
+     showNotification("No GPS data found in the uploaded photo.", type = "error")
+     return()
+   }
     
     # Add new entry to the data
     new_entry <- data.frame(
@@ -260,8 +273,8 @@ server <- function(input, output, session) {
       Photo = sub("\\.jpg$", "", input$photo$name),
       box_type = input$box_type,
       Photo_src = file.path(output_dir, basename(final_path)),
-      latitude = new_gps_data$latitude[1],
-      longitude = new_gps_data$longitude[1],
+      GPSLatitude = new_gps_data$GPSLatitude[1],
+      GPSLongitude = new_gps_data$GPSLongitude[1],
       stringsAsFactors = FALSE
     )
     
@@ -275,7 +288,7 @@ server <- function(input, output, session) {
      # refresh data table
     output$data <- renderTable({
       all_data %>%
-        select(-c(Photo,latitude, longitude, photo_filename)) %>%
+        select(-c(Photo, GPSLatitude, GPSLongitude, photo_filename)) %>%
         mutate(box_type = as.factor(box_type))
     })
     
@@ -303,14 +316,14 @@ server <- function(input, output, session) {
   
   # Render data table
   # Render the full data table with hyperlinks
-  output$full_data_table <- renderDT({
+  output$full_data_table <- DT::renderDT({
     datatable(all_data(), escape = FALSE, options = list(pageLength = 10)) %>%
       formatStyle('Google_Photos_Link', target = 'row', 
                   backgroundColor = styleEqual(c("https://photos.google.com/search/"), c('lightblue')))
   })
   output$data <- renderTable({
     all_data %>%
-      select(-c(Photo,latitude, longitude, photo_filename)) %>%
+      select(-c(Photo, GPSLatitude, GPSLongitude, photo_filename)) %>%
       mutate(box_type = as.factor(box_type))
   })
   

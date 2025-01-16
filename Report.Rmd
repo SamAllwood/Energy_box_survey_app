@@ -5,6 +5,7 @@ output:
   pdf_document:
     includes:
       in_header: header.tex
+    
 ---
 ```{r setup, include=FALSE}
 library(tidyverse)
@@ -358,18 +359,20 @@ type_other_montage_4 <- image_montage(type_other_images_4, tile = "4x")
 ## Type Other Photo Collection pt4.
 `r type_other_montage_4`
 
+\newpage
 ## Photo Collections
-Original photo collections from the survey runs are available on the following links They were taken on 5 different days in 2024, labelled A-E:
+Original photo collections from the survey runs are available on the following links They were taken on 6 different days in 2024, labelled A-E and 'Acre':
 
 A - 26th Aug 2024 - https://photos.app.goo.gl/gpSXNtnQwtsQeAxs9  
 B - 19th Sep 2024 - https://photos.app.goo.gl/ydWT5oPZv2SJ3KAP6  
 C - 27th Oct 2024 - https://photos.app.goo.gl/UpsRWgwgCLHWXKHB6  
 D - 1st Jan 2025 - https://photos.app.goo.gl/SXkrE4S8KmL93FKK9  
 E - 3rd Jan 2025 - https://photos.app.goo.gl/3Q187LwnFb5Gc7tf6  
+Acre - 14th Jan 2025 - https://photos.app.goo.gl/2qPqWpeZPaf5qDTQ8
 
 
 ## Survey Coverage
-The GPS tracks of the survey runs are shown below. The 5 survey runs covered a total of 19.68km.
+The GPS tracks of the survey runs are shown below. The 5 survey runs covered a total of 19.68km. Note this does not include the Acre energy box survey, as they were conducted separately, and that survey run is also not shown on the Survey Routes map below.
 
 \begin{figure}[h] \centering \textbf{Survey Coverage Map}\ \includegraphics[width=\textwidth]{Survey_Routes.jpeg} \end{figure}
 
@@ -392,10 +395,10 @@ The table below shows the data collected for each box. The images can be found i
  kable_styling(protect_latex = TRUE,
                latex_options = c("striped",
                                  "hold_position", # stop table floating
-                                 "repeat_header")) %>%
- column_spec(2, width = "7cm") %>%
- column_spec(3, width = "1.5cm")
-)
+                                 "repeat_header"))) #%>%
+# column_spec(2, width = "7cm") %>%
+# column_spec(3, width = "1.5cm")
+
 ```
 
 
